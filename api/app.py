@@ -2,15 +2,19 @@ from flask import Flask, jsonify, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import pandas as pd
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 limiter = Limiter(get_remote_address, app=app, default_limits=["100000 per day", "4167 per hour"])
 
 def read_data_files():
     # Read data from CSV files and return DataFrames
-    u_data = pd.read_csv('C:/Users/YouCode/Desktop/saad/2023-12-04_evaluation_JayZZ_movies_recommendation_spark_EK/Jay-Z_Entertainment_data_analysis_and_live_recommendation/api/data/u.data', sep='\t', names=['userId', 'movieId', 'rating', 'timestamp'])
-    u_item = pd.read_csv('C:/Users/YouCode/Desktop/saad/2023-12-04_evaluation_JayZZ_movies_recommendation_spark_EK/Jay-Z_Entertainment_data_analysis_and_live_recommendation/api/data/u.item', sep='|', encoding='latin-1', header=None, names=['movieId', 'title', 'release_date', 'video_release_date', 'IMDb_URL', 'unknown', 'Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'])
-    u_user = pd.read_csv('C:/Users/YouCode/Desktop/saad/2023-12-04_evaluation_JayZZ_movies_recommendation_spark_EK/Jay-Z_Entertainment_data_analysis_and_live_recommendation/api/data/u.user', sep='|', names=['userId', 'age', 'gender', 'occupation', 'zipcode'])
+    u_data = pd.read_csv(os.getenv('BASE_PROJECT_PATH') + 'api/data/u.data', sep='\t', names=['userId', 'movieId', 'rating', 'timestamp'])
+    u_item = pd.read_csv(os.getenv('BASE_PROJECT_PATH') + 'api/data/u.item', sep='|', encoding='latin-1', header=None, names=['movieId', 'title', 'release_date', 'video_release_date', 'IMDb_URL', 'unknown', 'Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'])
+    u_user = pd.read_csv(os.getenv('BASE_PROJECT_PATH') + 'api/data/u.user', sep='|', names=['userId', 'age', 'gender', 'occupation', 'zipcode'])
     return u_data, u_item, u_user
 
 def extract_genres(row):

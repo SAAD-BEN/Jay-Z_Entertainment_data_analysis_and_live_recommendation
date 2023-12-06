@@ -1,0 +1,21 @@
+-------------------Docker Run-----------------
+----------------------------------------------
+# Run the images
+docker-compose -f docker-compose.yml up -d
+
+---> Connect to http://localhost:3000/
+
+# Stop the images
+docker-compose -f docker-compose.yml down
+
+----------------------------------------------
+------------Run the Streaming-----------------
+----------------------------------------------
+# Run the api
+python3 .\api\app.py
+
+# Run the producer
+python3 .\scripts\Producer.py
+
+# Run the consumer
+python3 .\scripts\Consumer.py
