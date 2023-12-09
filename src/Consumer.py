@@ -1,7 +1,7 @@
 import findspark
 findspark.init()
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, concat_ws, lit, udf
+from pyspark.sql.functions import from_json, col, concat_ws, udf, to_date, from_unixtime, date_format
 from pyspark.sql.types import StructType, StructField, StringType,  FloatType, IntegerType
 from elasticsearch import Elasticsearch
 from dotenv import load_dotenv
@@ -78,6 +78,40 @@ def find_movie_by_id( index_name: str, movie_id: str):
         print(f"Error finding movie by movieId '{movie_id}': {str(e)}")
         return None
 
+# Function to find a user by userId
+def find_user_by_id( index_name: str, user_id: str):
+    try:
+        elastic_client = Elasticsearch(
+            os.getenv("ELASTIC_URL"),
+            api_key=(os.getenv("ELASTIC_API_KEY"))
+        )
+        # Use Elasticsearch.search method to find the user by userId
+        response = elastic_client.search(
+            index=index_name,
+            body={
+                "query": {
+                    "match": {
+                        "userId": user_id
+                    }
+                }
+            }
+        )
+
+        # Check if there are hits in the response
+        hits = response["hits"]["hits"]
+        
+        # close the connection
+        elastic_client.close()
+        
+        if hits:
+            # Return the first hit (assuming userId is unique)
+            return hits[0]["_source"]
+        else:
+            return None
+    except Exception as e:
+        print(f"Error finding user by userId '{user_id}': {str(e)}")
+        return None
+
 # Function to find a movie rating count by movieId
 def find_movie_rating_count_by_id( index_name: str, movie_id: str):
     try:
@@ -102,6 +136,18 @@ def find_movie_avg_rating_by_id( index_name: str, movie_id: str):
         print(f"Error finding movie by movieId '{movie_id}': {str(e)}")
         return None
     
+# Function to find a user activity count by userId
+def find_user_activity_count_by_id( index_name: str, user_id: str):
+    try:
+        user = find_user_by_id(index_name, user_id)
+        if user:
+            return int(user["activity_count"])
+        else:
+            return int(0)
+    except Exception as e:
+        print(f"Error finding user by userId '{user_id}': {str(e)}")
+        return None
+
 # Function to read data from Kafka topic and return a DataFrame
 def read_from_kafka(spark, kafka_bootstrap_servers, kafka_topic):
     return (
@@ -170,8 +216,12 @@ def get_rating_count(movie_id):
 def get_rating_avg(movie_id):
     return find_movie_avg_rating_by_id("jayzz_movie_index", movie_id)
 
+def get_activity_count(user_id):
+    return find_user_activity_count_by_id("jayzz_user_index", user_id)
+
 get_rating_count_udf = udf(lambda x: get_rating_count(x), IntegerType())
 get_rating_avg_udf = udf(lambda x: get_rating_avg(x), FloatType())
+get_activity_count_udf = udf(lambda x: get_activity_count(x), IntegerType())
 
 # Example usage
 if __name__ == "__main__":
@@ -197,9 +247,9 @@ if __name__ == "__main__":
     parsed_data = parse_kafka_message(kafka_data, kafka_message_schema)
 
     # Parse JSON data from Kafka message for each schema
-    user_data = parsed_data.select(col("user.*"))
+    user_data_no_activity = parsed_data.select(col("user.*"))
     movie_data_no_rating_avg = parsed_data.select(col("movie.*"), col("rating"))
-    review_data = parsed_data.select(concat_ws("_", col("user.userId"), col("movie.movieId")).alias("reviewId"), col("rating"), col("timestamp"), col("movie.movieId").alias("movieId"), col("user.userId").alias("userId"))
+    review_data_no_time = parsed_data.select(concat_ws("_", col("user.userId"), col("movie.movieId")).alias("reviewId"), col("rating"), col("timestamp"), col("movie.movieId").alias("movieId"), col("user.userId").alias("userId"))
 
     # add old rating_count and rating_avg to movie_data
     movie_data_old_rating = movie_data_no_rating_avg.withColumn("rating_count_old", get_rating_count_udf(movie_data_no_rating_avg["movieId"])).withColumn("rating_avg_old", get_rating_avg_udf(movie_data_no_rating_avg["movieId"]))
@@ -209,6 +259,20 @@ if __name__ == "__main__":
     
     # select only the columns we want
     movie_data = movie_data_with_rating.select("movieId", "title", "genres", "rating_count", "rating_avg")
+
+    # add old activity_count to user_data
+    user_data_old_activity = user_data_no_activity.withColumn("activity_count_old", get_activity_count_udf(user_data_no_activity["userId"]))
+
+    # update user_data with new activity_count
+    user_data_with_activity = user_data_old_activity.withColumn("activity_count", col("activity_count_old") + 1)
+
+    # select only the columns we want
+    user_data = user_data_with_activity.select("userId","age","gender", "occupation","activity_count")
+
+    # change timestamp to date and time columns
+    review_data_with_time = review_data_no_time.withColumn("timestamp_date", to_date(from_unixtime(col("timestamp")), "yyyy-MM-dd HH:mm:ss"))
+    # select only the columns we want
+    review_data = review_data_with_time.select("reviewId", "rating", "timestamp_date",  "movieId", "userId")
 
     # mappings folder
     mappings_folder = os.getenv("BASE_PROJECT_PATH") + "src/mappings/"
@@ -228,9 +292,9 @@ if __name__ == "__main__":
 
 
     # Write data to Elasticsearch for each schema Parallelly
+    threading.Thread(target=write_to_elasticsearch, args=(review_data, "jayzz_review_index", elastic_settings, "reviewId")).start()    
     threading.Thread(target=write_to_elasticsearch, args=(user_data, "jayzz_user_index", elastic_settings, "userId")).start()
     threading.Thread(target=write_to_elasticsearch, args=(movie_data, "jayzz_movie_index", elastic_settings, "movieId")).start()
-    threading.Thread(target=write_to_elasticsearch, args=(review_data, "jayzz_review_index", elastic_settings, "reviewId")).start()    
     
     # wait for threads to finish
     threading.Thread.join()

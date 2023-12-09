@@ -30,8 +30,9 @@
       "rating": {
         "type": "float"
       },
-      "timestamp": {
-        "type": "date"
+      "timestamp_date": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
       },
       "user": {
         "properties": {
@@ -46,6 +47,9 @@
           },
           "userId": {
             "type": "keyword"
+          },
+          "activity_count": {
+            "type": "integer"
           }
         }
       }

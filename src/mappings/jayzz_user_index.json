@@ -16,6 +16,9 @@
         },
         "occupation": {
           "type": "keyword"
+        },
+        "activity_count": {
+          "type": "integer"
         }
       }
     }
