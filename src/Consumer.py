@@ -231,4 +231,9 @@ if __name__ == "__main__":
     threading.Thread(target=write_to_elasticsearch, args=(user_data, "jayzz_user_index", elastic_settings, "userId")).start()
     threading.Thread(target=write_to_elasticsearch, args=(movie_data, "jayzz_movie_index", elastic_settings, "movieId")).start()
     threading.Thread(target=write_to_elasticsearch, args=(review_data, "jayzz_review_index", elastic_settings, "reviewId")).start()    
-    # write_to_elasticsearch(movie_data, "jayzz_movie_index", elastic_settings, "movieId")
+    
+    # wait for threads to finish
+    threading.Thread.join()
+
+    # Stop Spark session
+    spark.stop()
