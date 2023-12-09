@@ -1,13 +1,14 @@
--------------------Docker Run-----------------
+------------------Versions--------------------
 ----------------------------------------------
-# Run the images
-docker-compose -f docker-compose.yml up -d
+Spark : 
+----------------------------------------------
+------------------Docker kafka----------------
+----------------------------------------------
+#Start zookeeper :
+zookeeper-server-start.bat ....\config\zookeeper.properties
 
----> Connect to http://localhost:3000/
-
-# Stop the images
-docker-compose -f docker-compose.yml down
-
+#start kafka :
+kafka-server-start.bat ....\config\server.properties
 ----------------------------------------------
 ------------Run the Streaming-----------------
 ----------------------------------------------

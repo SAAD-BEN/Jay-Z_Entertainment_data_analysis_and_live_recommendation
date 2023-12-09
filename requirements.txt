@@ -1,6 +1,9 @@
+pandas
+requests
 flask
 flask_limiter
 confluent_kafka
 pyspark
 elasticsearch
 python-dotenv
+findspark

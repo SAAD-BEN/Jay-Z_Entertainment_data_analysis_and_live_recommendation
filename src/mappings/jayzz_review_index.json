@@ -1,0 +1,54 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "movie": {
+        "properties": {
+          "genres": {
+            "type": "keyword"
+          },
+          "movieId": {
+            "type": "keyword"
+          },
+          "title": {
+            "type": "text"
+          },
+          "rating_count": {
+            "type": "integer"
+          },
+          "rating_avg": {
+            "type": "float"
+          }
+        }
+      },
+      "reviewId": {
+        "type": "keyword"
+      },
+      "rating": {
+        "type": "float"
+      },
+      "timestamp": {
+        "type": "date"
+      },
+      "user": {
+        "properties": {
+          "age": {
+            "type": "integer"
+          },
+          "gender": {
+            "type": "keyword"
+          },
+          "occupation": {
+            "type": "keyword"
+          },
+          "userId": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}

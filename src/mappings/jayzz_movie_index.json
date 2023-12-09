@@ -1,0 +1,25 @@
+{
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "properties": {
+        "movieId": {
+          "type": "keyword"
+        },
+        "title": {
+          "type": "text"
+        },
+        "genres": {
+          "type": "keyword"
+        },
+        "rating_count": {
+          "type": "integer"
+        },
+        "rating_avg": {
+          "type": "float"
+        }
+      }
+    }
+  }
