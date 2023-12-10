@@ -1,6 +1,10 @@
 import requests
 from confluent_kafka import Producer
 import time
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Set up Kafka Producer
 conf = {
@@ -23,7 +27,7 @@ def fetch_data_and_produce(page_number):
                 producer.flush()
                 movie = item["movie"]["movieId"]
                 print(f"{movie} sent to Kafka from Page {page_number}")
-                time.sleep(4)
+                time.sleep(1)
             return True
         else:
             print("No more data available.")
@@ -33,6 +37,16 @@ def fetch_data_and_produce(page_number):
         return False
 
 # Fetch data from API and send items to Kafka until no more data available
-page_num = 1
+# check if the last page file exists
+if os.path.exists(os.getenv("BASE_PROJECT_PATH") + "/src/last_page.txt"):
+    # read the last page number
+    with open(os.getenv("BASE_PROJECT_PATH") + "/src/last_page.txt", "r") as f:
+        page_num = int(f.read())
+else:
+    # set the page number to 1
+    page_num = 1
 while fetch_data_and_produce(page_num):
     page_num += 1
+    # write the last page number
+    with open(os.getenv("BASE_PROJECT_PATH") + "/src/last_page.txt", "w") as f:
+        f.write(str(page_num))

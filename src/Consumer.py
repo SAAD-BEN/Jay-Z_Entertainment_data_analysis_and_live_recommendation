@@ -249,7 +249,7 @@ if __name__ == "__main__":
     # Parse JSON data from Kafka message for each schema
     user_data_no_activity = parsed_data.select(col("user.*"))
     movie_data_no_rating_avg = parsed_data.select(col("movie.*"), col("rating"))
-    review_data_no_time = parsed_data.select(concat_ws("_", col("user.userId"), col("movie.movieId")).alias("reviewId"), col("rating"), col("timestamp"), col("movie.movieId").alias("movieId"), col("user.userId").alias("userId"))
+    review_data_no_time = parsed_data.select(concat_ws("_", col("user.userId"), col("movie.movieId")).alias("reviewId"), col("rating"), col("timestamp"), col("movie"), col("user"))
 
     # add old rating_count and rating_avg to movie_data
     movie_data_old_rating = movie_data_no_rating_avg.withColumn("rating_count_old", get_rating_count_udf(movie_data_no_rating_avg["movieId"])).withColumn("rating_avg_old", get_rating_avg_udf(movie_data_no_rating_avg["movieId"]))
@@ -270,9 +270,9 @@ if __name__ == "__main__":
     user_data = user_data_with_activity.select("userId","age","gender", "occupation","activity_count")
 
     # change timestamp to date and time columns
-    review_data_with_time = review_data_no_time.withColumn("timestamp_date", to_date(from_unixtime(col("timestamp")), "yyyy-MM-dd HH:mm:ss"))
-    # select only the columns we want
-    review_data = review_data_with_time.select("reviewId", "rating", "timestamp_date",  "movieId", "userId")
+    review_data = review_data_no_time.withColumn("timestamp_date", to_date(from_unixtime(col("timestamp")), "yyyy-MM-dd HH:mm:ss")).drop("timestamp")
+    # # select only the columns we want
+    # review_data = review_data_with_time.select("reviewId", "rating", "timestamp_date",  "movieId", "userId")
 
     # mappings folder
     mappings_folder = os.getenv("BASE_PROJECT_PATH") + "src/mappings/"
