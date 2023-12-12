@@ -12,7 +12,12 @@
           "type": "text"
         },
         "genres": {
-          "type": "keyword"
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
         },
         "rating_count": {
           "type": "integer"

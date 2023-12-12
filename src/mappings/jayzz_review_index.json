@@ -8,7 +8,12 @@
       "movie": {
         "properties": {
           "genres": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
           },
           "movieId": {
             "type": "keyword"
@@ -30,7 +35,7 @@
       "rating": {
         "type": "float"
       },
-      "timestamp_date": {
+      "timestamp": {
         "type": "date",
         "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
       },

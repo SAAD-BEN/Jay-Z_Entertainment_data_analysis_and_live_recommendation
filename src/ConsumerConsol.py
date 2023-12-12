@@ -2,12 +2,12 @@ import findspark
 findspark.init()
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, ArrayType
 
 # Define the schema for the JSON data
 schema = StructType([
     StructField("movie", StructType([
-        StructField("genres", StringType(), True),
+        StructField("genres", ArrayType(StringType()), True),
         StructField("movieId", StringType(), True),
         StructField("title", StringType(), True)
     ]), True),
@@ -29,7 +29,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Subscribe to the Kafka topic
-topic = 'reviews'
+topic = 'movies_reviews'
 df = spark.readStream \
         .format("kafka") \
         .option("kafka.bootstrap.servers", "localhost:9092") \
@@ -47,6 +47,9 @@ cleaned_df = schema.select("value.*")
 
 # Get the desired fields from the nested structure
 nested_df = cleaned_df.select(col("movie.*"), col("rating"), col("user.*"))
+
+# # cast movie to arrayType
+# nested_df_f = nested_df.withColumn("genres_array", col("genres").cast(ArrayType(StringType())))
 
 streaming_es_query = nested_df.writeStream.outputMode("append").format("console").option("format", "json").start()
 streaming_es_query.awaitTermination()

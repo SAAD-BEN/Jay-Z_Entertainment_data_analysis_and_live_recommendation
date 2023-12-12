@@ -23,11 +23,11 @@ def fetch_data_and_produce(page_number):
         movie_data = response.json()
         if movie_data and 'results' in movie_data:
             for item in movie_data['results']:
-                producer.produce('reviews', value=str(item))
+                producer.produce('new_movies_reviews', value=str(item))
                 producer.flush()
                 movie = item["movie"]["movieId"]
                 print(f"{movie} sent to Kafka from Page {page_number}")
-                time.sleep(1)
+                time.sleep(5)
             return True
         else:
             print("No more data available.")
