@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAYZZ CineSync Recommendation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>JAYZZ CineSync Recommendation DEMO</h1>
+        <h2 id="movieTitleHeader">JAYZZ x Saad</h2>
+        <div class="search-bar">
+            <input type="text" id="movieTitle" placeholder="Enter Movie Title">
+            <button id="getRecommendationBtn" onclick="getRecommendations()">Get Recommendations</button>
+        </div>
+        <div id="loadingSpinner" class="loading-spinner"></div>
+        <div id="movieList" class="movie-list"></div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
