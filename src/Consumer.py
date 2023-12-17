@@ -153,8 +153,6 @@ def write_to_elasticsearch(data, index_name, elastic_settings, document_id_colum
         .option("es.write.operation", "upsert")
         .option("es.mapping.id", document_id_column)
         .option("checkpointLocation", f"./checlpoints/{index_name}-checkpoint")
-        # .start()
-        # .outputMode("append").format("console").option("format", "json").start()
     )
     return query
 
